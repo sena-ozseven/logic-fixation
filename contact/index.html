@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Contact | Philosophical Logic Notes</title>
+    <link rel="stylesheet" href="/assets/css/base.css" />
+  </head>
+  <body>
+    <div data-site-header></div>
+    <main class="site-container">
+      <h1>Contact</h1>
+      <p>Email: <a href="mailto:your-email@example.com">your-email@example.com</a></p>
+      <ul class="inline-links">
+        <li><a href="https://example.com">Website</a></li>
+        <li><a href="https://linkedin.com/in/your-handle">LinkedIn</a></li>
+        <li><a href="https://github.com/your-handle">GitHub</a></li>
+      </ul>
+
+      <section class="card">
+        <h2>Contact Form</h2>
+        <form data-contact-form>
+          <label for="name">Name</label>
+          <input id="name" name="name" type="text" required />
+
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" required />
+
+          <label for="message">Message</label>
+          <textarea id="message" name="message" required></textarea>
+
+          <button type="submit">Send</button>
+        </form>
+        <p class="status" data-contact-status aria-live="polite"></p>
+      </section>
+    </main>
+    <div data-site-footer></div>
+    <script src="/assets/js/site.js"></script>
+  </body>
+</html>

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin | Philosophical Logic Notes</title>
+    <link rel="stylesheet" href="/assets/css/base.css" />
+  </head>
+  <body>
+    <div data-site-header></div>
+    <main class="site-container">
+      <h1>Admin Publisher (Local)</h1>
+      <p class="muted">
+        This local tool helps you draft chapter answers with logic symbols and export JSON
+        snippets to paste into chapter files.
+      </p>
+
+      <section class="card">
+        <label for="chapter-select">Chapter</label>
+        <select id="chapter-select" data-chapter-select></select>
+
+        <label for="question">Question</label>
+        <input id="question" type="text" data-question />
+
+        <label for="explanation">Explanation</label>
+        <textarea id="explanation" data-explanation></textarea>
+
+        <label for="answer">Answer</label>
+        <textarea id="answer" data-answer></textarea>
+
+        <p class="muted">Logic symbols keyboard</p>
+        <div class="symbol-grid" data-symbol-grid></div>
+
+        <button type="button" data-export>Generate JSON Snippet</button>
+        <button type="button" data-copy>Copy Snippet</button>
+        <p class="status" data-admin-status aria-live="polite"></p>
+      </section>
+
+      <section class="card">
+        <h2>Generated Snippet</h2>
+        <textarea data-output readonly></textarea>
+      </section>
+    </main>
+    <div data-site-footer></div>
+    <script src="/assets/js/site.js"></script>
+    <script src="/assets/js/logic-keyboard.js"></script>
+  </body>
+</html>

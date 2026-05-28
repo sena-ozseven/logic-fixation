@@ -1,0 +1,18 @@
+{
+  "number": 2,
+  "slug": "chapter-02",
+  "title": "Truth-Functional Connectives",
+  "summary": "This chapter explains negation, conjunction, disjunction, conditional, and biconditional operators.",
+  "answers": [
+    {
+      "question": "Translate into symbols: Not both P and Q.",
+      "explanation": "The phrase 'not both' negates a conjunction.",
+      "answer": "¬(P ∧ Q)"
+    },
+    {
+      "question": "Translate into symbols: Either P or Q, but not both.",
+      "explanation": "Exclusive disjunction can be represented as ordinary disjunction plus a negated conjunction.",
+      "answer": "(P ∨ Q) ∧ ¬(P ∧ Q)"
+    }
+  ]
+}

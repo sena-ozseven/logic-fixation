@@ -1,0 +1,18 @@
+{
+  "number": 1,
+  "slug": "chapter-01",
+  "title": "Arguments and Logical Form",
+  "summary": "This chapter introduces argument structure, validity, and how form helps evaluate reasoning.",
+  "answers": [
+    {
+      "question": "Identify the conclusion in: If the library is open, we can study; the library is open; therefore we can study.",
+      "explanation": "The conclusion is the statement the premises are intended to support.",
+      "answer": "The conclusion is: we can study."
+    },
+    {
+      "question": "Is this argument form valid: If P then Q; P; therefore Q?",
+      "explanation": "This is modus ponens, which preserves truth from premises to conclusion.",
+      "answer": "Yes, it is valid."
+    }
+  ]
+}

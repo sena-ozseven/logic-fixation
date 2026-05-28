@@ -1,0 +1,17 @@
+{
+  "slug": "logic-techniques-of-formal-reasoning",
+  "title": "Logic: Techniques of Formal Reasoning",
+  "author": "Open University Press",
+  "chapters": [
+    { "number": 1, "slug": "chapter-01", "title": "Arguments and Logical Form", "status": "sample-complete" },
+    { "number": 2, "slug": "chapter-02", "title": "Truth-Functional Connectives", "status": "sample-complete" },
+    { "number": 3, "slug": "chapter-03", "title": "Natural Deduction Basics", "status": "sample-complete" },
+    { "number": 4, "slug": "chapter-04", "title": "Conditional Proof and Indirect Proof", "status": "scaffolded" },
+    { "number": 5, "slug": "chapter-05", "title": "Predicate Logic", "status": "scaffolded" },
+    { "number": 6, "slug": "chapter-06", "title": "Quantifiers and Scope", "status": "scaffolded" },
+    { "number": 7, "slug": "chapter-07", "title": "Identity and Descriptions", "status": "scaffolded" },
+    { "number": 8, "slug": "chapter-08", "title": "Modal Reasoning", "status": "scaffolded" },
+    { "number": 9, "slug": "chapter-09", "title": "Consistency and Completeness", "status": "scaffolded" },
+    { "number": 10, "slug": "chapter-10", "title": "Advanced Applications", "status": "scaffolded" }
+  ]
+}

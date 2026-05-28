@@ -1,0 +1,18 @@
+{
+  "number": 3,
+  "slug": "chapter-03",
+  "title": "Natural Deduction Basics",
+  "summary": "This chapter introduces proof lines, assumptions, and basic inference rules.",
+  "answers": [
+    {
+      "question": "From P ∧ Q, what can be inferred by conjunction elimination?",
+      "explanation": "Conjunction elimination allows each conjunct to be inferred separately.",
+      "answer": "You may infer P and you may infer Q."
+    },
+    {
+      "question": "From P and Q, what can be inferred by conjunction introduction?",
+      "explanation": "Conjunction introduction combines two established statements into one conjunction.",
+      "answer": "P ∧ Q"
+    }
+  ]
+}
