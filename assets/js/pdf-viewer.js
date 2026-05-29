@@ -1,5 +1,5 @@
-const PDF_URL =
-  "https://ia601504.us.archive.org/0/items/in.ernet.dli.2015.139500/2015.139500.Logic-Techniques-Of-Formal-Reasonong.pdf";
+const TOTAL_PAGES = 354;
+const PAGES_BASE = "/content/textbooks/logic-techniques-of-formal-reasoning/pages/";
 const STORAGE_KEY = "logic-techniques-solutions-by-page-v1";
 
 const SYMBOLS = [
@@ -19,6 +19,13 @@ const SYMBOLS = [
 ];
 
 let currentPage = 1;
+
+// ── Page image URL ────────────────────────────────────────────────────────────
+
+function buildImageSrc(pageNum) {
+  const padded = String(pageNum).padStart(3, "0");
+  return `${PAGES_BASE}page-${padded}.jpg`;
+}
 
 // ── Storage ───────────────────────────────────────────────────────────────────
 
@@ -47,17 +54,13 @@ function getEntries(page) {
 function getPageFromUrl() {
   const p = new URLSearchParams(window.location.search).get("p");
   const n = parseInt(p, 10);
-  return Number.isInteger(n) && n >= 1 ? n : 1;
+  return Number.isInteger(n) && n >= 1 && n <= TOTAL_PAGES ? n : 1;
 }
 
 function buildPageUrl(pageNum) {
   const url = new URL(window.location.href);
   url.searchParams.set("p", String(pageNum));
   return url.toString();
-}
-
-function buildPdfSrc(pageNum) {
-  return `${PDF_URL}#page=${pageNum}&toolbar=0&navpanes=0&view=FitH`;
 }
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
@@ -111,21 +114,23 @@ function renderEntriesPanel(page) {
 
   if (heading) heading.textContent = `Saved — Page ${page}`;
   if (panelTitle) panelTitle.textContent = `Solutions — Page ${page}`;
-  if (pageLabel) pageLabel.textContent = `Page ${page}`;
+  if (pageLabel) pageLabel.textContent = `Page ${page} of ${TOTAL_PAGES}`;
 
   if (!list) return;
   const entries = getEntries(page);
 
   if (!entries.length) {
-    list.innerHTML = '<p class="muted" style="font-size:0.825rem;">No entries for this page yet.</p>';
+    list.innerHTML =
+      '<p class="muted" style="font-size:0.825rem;">No entries for this page yet.</p>';
     return;
   }
 
   list.innerHTML = entries
     .map(function (entry, i) {
-      const preview = entry.question.length > 48
-        ? entry.question.slice(0, 48) + "…"
-        : entry.question;
+      const preview =
+        entry.question.length > 48
+          ? entry.question.slice(0, 48) + "…"
+          : entry.question;
       return `
         <div class="entry-item" data-entry-item="${i}">
           <div class="entry-summary" data-entry-toggle="${i}">
@@ -147,14 +152,12 @@ function renderEntriesPanel(page) {
 
 function updateNavControls(page) {
   const goInput = document.querySelector("[data-go-input]");
-  const totalPages = document.querySelector("[data-total-pages]");
   const prevLink = document.querySelector("[data-nav-prev]");
   const nextLink = document.querySelector("[data-nav-next]");
   const jumpBack = document.querySelector("[data-nav-jump-back]");
   const jumpForward = document.querySelector("[data-nav-jump-forward]");
 
   if (goInput) goInput.value = String(page);
-  if (totalPages) totalPages.textContent = "";
 
   function applyLink(el, href, disabled) {
     if (!el) return;
@@ -168,30 +171,41 @@ function updateNavControls(page) {
   }
 
   applyLink(prevLink, buildPageUrl(page - 1), page <= 1);
-  applyLink(nextLink, buildPageUrl(page + 1), false);
+  applyLink(nextLink, buildPageUrl(page + 1), page >= TOTAL_PAGES);
   applyLink(jumpBack, buildPageUrl(Math.max(1, page - 10)), page <= 1);
-  applyLink(jumpForward, buildPageUrl(page + 10), false);
+  applyLink(jumpForward, buildPageUrl(Math.min(TOTAL_PAGES, page + 10)), page >= TOTAL_PAGES);
 }
 
-function refreshPdfFrame(page) {
-  const frame = document.querySelector("[data-pdf-frame]");
-  if (!frame) return;
-  frame.src = buildPdfSrc(page);
+function refreshPageImage(page) {
+  const img = document.querySelector("[data-page-img]");
+  if (!img) return;
+  img.src = buildImageSrc(page);
+  img.alt = `Page ${page} of ${TOTAL_PAGES} — Logic: Techniques of Formal Reasoning`;
+
+  // Preload next page
+  if (page < TOTAL_PAGES) {
+    const preload = new Image();
+    preload.src = buildImageSrc(page + 1);
+  }
 }
 
 // ── Core navigate ─────────────────────────────────────────────────────────────
 
 function gotoPage(pageNum) {
-  const target = Math.max(1, pageNum);
+  const target = Math.max(1, Math.min(TOTAL_PAGES, pageNum));
   currentPage = target;
 
   history.pushState({ page: target }, "", buildPageUrl(target));
-  document.title = `Page ${target} — Logic: Techniques of Formal Reasoning`;
+  document.title = `Page ${target} of ${TOTAL_PAGES} — Logic: Techniques of Formal Reasoning`;
 
-  refreshPdfFrame(target);
+  refreshPageImage(target);
   clearForm();
   updateNavControls(target);
   renderEntriesPanel(target);
+
+  // Scroll to top of page image on navigation
+  const imgEl = document.querySelector("[data-page-img]");
+  if (imgEl) imgEl.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 // ── Event wiring ──────────────────────────────────────────────────────────────
@@ -201,7 +215,7 @@ function wireNavLinks() {
     "[data-nav-prev]": () => currentPage - 1,
     "[data-nav-next]": () => currentPage + 1,
     "[data-nav-jump-back]": () => Math.max(1, currentPage - 10),
-    "[data-nav-jump-forward]": () => currentPage + 10,
+    "[data-nav-jump-forward]": () => Math.min(TOTAL_PAGES, currentPage + 10),
   };
   Object.entries(defs).forEach(function ([sel, getTarget]) {
     const el = document.querySelector(sel);
@@ -221,7 +235,7 @@ function wireGoForm() {
     event.preventDefault();
     const input = form.querySelector("[data-go-input]");
     const target = parseInt(input.value, 10);
-    if (Number.isInteger(target) && target >= 1) {
+    if (Number.isInteger(target) && target >= 1 && target <= TOTAL_PAGES) {
       gotoPage(target);
     }
   });
@@ -242,7 +256,10 @@ function wireSymbolKeyboard() {
     const active = document.activeElement;
     const explanation = document.querySelector("[data-sol-explanation]");
     const answer = document.querySelector("[data-sol-answer]");
-    insertAtCursor(active === explanation || active === answer ? active : answer, symbol);
+    insertAtCursor(
+      active === explanation || active === answer ? active : answer,
+      symbol
+    );
   });
 }
 
@@ -274,7 +291,6 @@ function wireEntryInteractions() {
   if (!list) return;
 
   list.addEventListener("click", function (event) {
-    // Toggle expand/collapse
     const toggleBtn = event.target.closest("[data-entry-toggle]");
     if (toggleBtn) {
       const index = toggleBtn.getAttribute("data-entry-toggle");
@@ -287,7 +303,6 @@ function wireEntryInteractions() {
       return;
     }
 
-    // Delete
     const deleteBtn = event.target.closest("[data-delete-entry]");
     if (deleteBtn) {
       const index = parseInt(deleteBtn.getAttribute("data-delete-entry"), 10);
@@ -336,7 +351,7 @@ function wirePopState() {
   window.addEventListener("popstate", function (event) {
     const page = event.state?.page ?? getPageFromUrl();
     currentPage = page;
-    refreshPdfFrame(page);
+    refreshPageImage(page);
     clearForm();
     updateNavControls(page);
     renderEntriesPanel(page);
@@ -346,7 +361,7 @@ function wirePopState() {
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", function () {
-  if (!document.querySelector("[data-pdf-frame]")) return;
+  if (!document.querySelector("[data-page-img]")) return;
 
   wireNavLinks();
   wireGoForm();
@@ -358,9 +373,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   currentPage = getPageFromUrl();
   history.replaceState({ page: currentPage }, "", buildPageUrl(currentPage));
-  document.title = `Page ${currentPage} — Logic: Techniques of Formal Reasoning`;
+  document.title = `Page ${currentPage} of ${TOTAL_PAGES} — Logic: Techniques of Formal Reasoning`;
 
-  refreshPdfFrame(currentPage);
+  refreshPageImage(currentPage);
   updateNavControls(currentPage);
   renderEntriesPanel(currentPage);
 });
