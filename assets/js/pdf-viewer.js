@@ -101,6 +101,7 @@ function clearForm() {
   );
   const exportOut = document.querySelector("[data-export-out]");
   if (exportOut) exportOut.value = "";
+  closeNewEntryForm();
   showStatus("", false);
 }
 
@@ -281,6 +282,7 @@ function wireSaveEntry() {
     storage[key] = entries;
     writeStorage(storage);
     clearForm();
+    closeNewEntryForm();
     renderEntriesPanel(currentPage);
     showStatus(`Entry saved for page ${currentPage}.`, false);
   });
@@ -317,6 +319,23 @@ function wireEntryInteractions() {
       showStatus(`Deleted entry ${index + 1} on page ${currentPage}.`, false);
     }
   });
+}
+
+function wireNewEntryToggle() {
+  const toggleBtn = document.querySelector("[data-new-entry-toggle]");
+  const body = document.querySelector("[data-new-entry-body]");
+  if (!toggleBtn || !body) return;
+  toggleBtn.addEventListener("click", function () {
+    const isOpen = body.classList.toggle("open");
+    toggleBtn.textContent = isOpen ? "− New Entry" : "+ New Entry";
+  });
+}
+
+function closeNewEntryForm() {
+  const body = document.querySelector("[data-new-entry-body]");
+  const toggleBtn = document.querySelector("[data-new-entry-toggle]");
+  if (body) body.classList.remove("open");
+  if (toggleBtn) toggleBtn.textContent = "+ New Entry";
 }
 
 function wireExport() {
@@ -365,6 +384,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   wireNavLinks();
   wireGoForm();
+  wireNewEntryToggle();
   wireSymbolKeyboard();
   wireSaveEntry();
   wireEntryInteractions();

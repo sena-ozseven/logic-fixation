@@ -77,26 +77,29 @@
             </p>
           </div>
 
-          <!-- Section A: New entry form -->
+          <!-- Section A: New entry form (collapsible) -->
           <div class="panel-section">
-            <p class="panel-section-title">New Entry</p>
+            <button type="button" class="new-entry-toggle" data-new-entry-toggle>
+              + New Entry
+            </button>
+            <div class="new-entry-body" data-new-entry-body>
+              <label for="sol-question">Question</label>
+              <input id="sol-question" type="text" data-sol-question />
 
-            <label for="sol-question">Question</label>
-            <input id="sol-question" type="text" data-sol-question />
+              <label for="sol-explanation">Explanation</label>
+              <textarea id="sol-explanation" data-sol-explanation></textarea>
 
-            <label for="sol-explanation">Explanation</label>
-            <textarea id="sol-explanation" data-sol-explanation></textarea>
+              <label for="sol-answer">Answer</label>
+              <textarea id="sol-answer" data-sol-answer></textarea>
 
-            <label for="sol-answer">Answer</label>
-            <textarea id="sol-answer" data-sol-answer></textarea>
+              <!-- Logic symbol keyboard -->
+              <div class="symbol-grid" data-sym-grid></div>
 
-            <!-- Logic symbol keyboard -->
-            <div class="symbol-grid" data-sym-grid></div>
-
-            <div class="panel-actions">
-              <button type="button" class="btn-primary" data-save-entry>Save Entry</button>
+              <div class="panel-actions">
+                <button type="button" class="btn-primary" data-save-entry>Save Entry</button>
+              </div>
+              <p class="status" data-panel-status aria-live="polite"></p>
             </div>
-            <p class="status" data-panel-status aria-live="polite"></p>
           </div>
 
           <!-- Section B: Saved entries -->
