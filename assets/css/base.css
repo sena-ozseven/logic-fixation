@@ -140,3 +140,57 @@ button:hover {
   margin-top: 0.75rem;
   color: #065f46;
 }
+
+.book-workspace {
+  display: grid;
+  gap: 1rem;
+}
+
+.book-viewer,
+.page-panel {
+  min-width: 0;
+}
+
+.page-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.page-controls input[type="number"] {
+  width: 90px;
+}
+
+.pdf-frame {
+  width: 100%;
+  min-height: 720px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.entry-list {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.entry-actions {
+  margin: 0.25rem 0 0.75rem;
+}
+
+@media (min-width: 1040px) {
+  .site-container {
+    max-width: 1200px;
+  }
+
+  .book-workspace {
+    grid-template-columns: 1.5fr 1fr;
+  }
+}
