@@ -159,6 +159,10 @@ button:hover {
   margin-bottom: 0.75rem;
 }
 
+.page-controls label {
+  margin: 0;
+}
+
 .page-controls input[type="number"] {
   width: 90px;
 }

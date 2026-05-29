@@ -63,6 +63,8 @@ function setupEmbeddedBookWorkspace() {
   const pageStatus = document.querySelector("[data-page-status]");
   const prevButton = document.querySelector("[data-page-prev]");
   const nextButton = document.querySelector("[data-page-next]");
+  const jumpBackButton = document.querySelector("[data-page-jump-back]");
+  const jumpForwardButton = document.querySelector("[data-page-jump-forward]");
   const goButton = document.querySelector("[data-page-go]");
   const questionInput = document.querySelector("[data-solution-question]");
   const explanationInput = document.querySelector("[data-solution-explanation]");
@@ -71,6 +73,7 @@ function setupEmbeddedBookWorkspace() {
   const exportButton = document.querySelector("[data-page-export]");
   const exportOutput = document.querySelector("[data-page-export-output]");
   const entriesTarget = document.querySelector("[data-page-entries]");
+  const entriesTitle = document.querySelector("[data-page-entries-title]");
   const symbolGrid = document.querySelector("[data-page-symbol-grid]");
   const statusTarget = document.querySelector("[data-page-panel-status]");
 
@@ -80,6 +83,8 @@ function setupEmbeddedBookWorkspace() {
     !pageStatus ||
     !prevButton ||
     !nextButton ||
+    !jumpBackButton ||
+    !jumpForwardButton ||
     !goButton ||
     !questionInput ||
     !explanationInput ||
@@ -88,6 +93,7 @@ function setupEmbeddedBookWorkspace() {
     !exportButton ||
     !exportOutput ||
     !entriesTarget ||
+    !entriesTitle ||
     !symbolGrid ||
     !statusTarget
   ) {
@@ -139,6 +145,7 @@ function setupEmbeddedBookWorkspace() {
 
   function renderEntries() {
     const entries = getEntriesForCurrentPage();
+    entriesTitle.textContent = `Saved Entries For Page ${currentPage}`;
     if (!entries.length) {
       entriesTarget.innerHTML = "<p class=\"muted\">No saved entries for this page yet.</p>";
       return;
@@ -162,9 +169,14 @@ function setupEmbeddedBookWorkspace() {
   }
 
   function refreshViewer() {
-    frame.src = `${PDF_URL}#page=${currentPage}`;
+    // Hide built-in toolbar where supported so page control stays in one place.
+    frame.src = `${PDF_URL}#page=${currentPage}&toolbar=0&navpanes=0&view=FitH`;
     pageInput.value = String(currentPage);
     pageStatus.textContent = `Page ${currentPage}`;
+    exportOutput.value = "";
+    questionInput.value = "";
+    explanationInput.value = "";
+    answerInput.value = "";
     renderEntries();
   }
 
@@ -193,12 +205,31 @@ function setupEmbeddedBookWorkspace() {
     showStatus("Moved to next page.", false);
   });
 
+  jumpBackButton.addEventListener("click", function onJumpBack() {
+    const targetPage = Math.max(1, currentPage - 10);
+    currentPage = targetPage;
+    refreshViewer();
+    showStatus("Moved back by 10 pages.", false);
+  });
+
+  jumpForwardButton.addEventListener("click", function onJumpForward() {
+    currentPage += 10;
+    refreshViewer();
+    showStatus("Moved forward by 10 pages.", false);
+  });
+
   goButton.addEventListener("click", function onGo() {
     setPage(pageInput.value);
   });
 
   pageInput.addEventListener("keydown", function onEnter(event) {
     if (event.key === "Enter") {
+      setPage(pageInput.value);
+    }
+  });
+
+  pageInput.addEventListener("blur", function onBlur() {
+    if (pageInput.value.trim()) {
       setPage(pageInput.value);
     }
   });

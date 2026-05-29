@@ -30,12 +30,15 @@
           <h2>Book Page</h2>
           <div class="page-controls">
             <button type="button" data-page-prev>Previous</button>
+            <button type="button" data-page-jump-back>Back 10</button>
             <label for="page-input">Page</label>
             <input id="page-input" type="number" min="1" value="1" data-page-input />
             <button type="button" data-page-go>Go</button>
+            <button type="button" data-page-jump-forward>Forward 10</button>
             <button type="button" data-page-next>Next</button>
             <span class="muted" data-page-status>Page 1</span>
           </div>
+          <p class="muted">Use these controls to keep page and solutions synchronized.</p>
           <iframe
             title="Logic: Techniques of Formal Reasoning PDF"
             class="pdf-frame"
@@ -65,7 +68,7 @@
           </div>
           <p class="status" data-page-panel-status aria-live="polite"></p>
 
-          <h3>Saved Entries For This Page</h3>
+          <h3 data-page-entries-title>Saved Entries For Page 1</h3>
           <div data-page-entries></div>
 
           <label for="page-export-output">Export Output</label>
