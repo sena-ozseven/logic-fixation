@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Page — Logic: Techniques of Formal Reasoning</title>
+    <link rel="stylesheet" href="/assets/css/base.css" />
+  </head>
+  <body>
+    <div data-site-header></div>
+    <main class="reader-container">
+      <div class="reader-layout">
+
+        <div class="reader-pdf">
+          <nav class="reader-controls" aria-label="Page navigation">
+            <a data-nav-prev href="#" aria-label="Previous page">← Prev</a>
+            <a data-nav-jump-back href="#" aria-label="Back 10 pages">−10</a>
+            <form data-go-form class="reader-go-form">
+              <label for="go-input" class="sr-only">Page number</label>
+              <input
+                id="go-input"
+                type="number"
+                min="1"
+                value="1"
+                data-go-input
+                aria-label="Page number"
+              />
+              <button type="submit">Go</button>
+            </form>
+            <span class="muted" data-total-pages></span>
+            <a data-nav-jump-forward href="#" aria-label="Forward 10 pages">+10</a>
+            <a data-nav-next href="#" aria-label="Next page">Next →</a>
+          </nav>
+
+          <p class="muted" data-render-status>Loading PDF…</p>
+          <canvas data-pdf-canvas></canvas>
+
+          <p class="muted reader-back-link">
+            <a href="/textbooks/logic-techniques-of-formal-reasoning/">← Back to textbook contents</a>
+          </p>
+        </div>
+
+        <aside class="reader-panel">
+          <h2 data-panel-title>Solutions — Page 1</h2>
+          <p class="muted">
+            Notes for this page only. Saved locally in your browser.
+          </p>
+
+          <label for="sol-question">Question</label>
+          <input id="sol-question" type="text" data-sol-question />
+
+          <label for="sol-explanation">Explanation</label>
+          <textarea id="sol-explanation" data-sol-explanation></textarea>
+
+          <label for="sol-answer">Answer</label>
+          <textarea id="sol-answer" data-sol-answer></textarea>
+
+          <p class="muted">Logic symbols</p>
+          <div class="symbol-grid" data-sym-grid></div>
+
+          <div class="panel-actions">
+            <button type="button" data-save-entry>Save Entry</button>
+            <button type="button" data-export-page>Export JSON</button>
+          </div>
+          <p class="status" data-panel-status aria-live="polite"></p>
+
+          <h3 data-entries-heading>Saved for Page 1</h3>
+          <div data-entries-list></div>
+
+          <label for="export-out">Export Output</label>
+          <textarea id="export-out" data-export-out readonly></textarea>
+        </aside>
+
+      </div>
+    </main>
+    <div data-site-footer></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="/assets/js/site.js"></script>
+    <script src="/assets/js/pdf-viewer.js"></script>
+  </body>
+</html>

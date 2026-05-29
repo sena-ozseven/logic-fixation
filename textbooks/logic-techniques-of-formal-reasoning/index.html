@@ -11,8 +11,8 @@
     <main class="site-container">
       <h1>Logic: Techniques of Formal Reasoning</h1>
       <p>
-        The full textbook is embedded below. You can move page by page and write solution
-        notes next to each page.
+        Read the textbook page by page. Each page has its own URL and its own
+        dedicated solutions panel.
       </p>
       <p>
         Open to contribute:
@@ -25,59 +25,16 @@
         </a>
       </p>
 
-      <section class="book-workspace card">
-        <div class="book-viewer">
-          <h2>Book Page</h2>
-          <div class="page-controls">
-            <button type="button" data-page-prev>Previous</button>
-            <button type="button" data-page-jump-back>Back 10</button>
-            <label for="page-input">Page</label>
-            <input id="page-input" type="number" min="1" value="1" data-page-input />
-            <button type="button" data-page-go>Go</button>
-            <button type="button" data-page-jump-forward>Forward 10</button>
-            <button type="button" data-page-next>Next</button>
-            <span class="muted" data-page-status>Page 1</span>
-          </div>
-          <p class="muted">Use these controls to keep page and solutions synchronized.</p>
-          <iframe
-            title="Logic: Techniques of Formal Reasoning PDF"
-            class="pdf-frame"
-            data-pdf-frame
-          ></iframe>
-        </div>
-
-        <aside class="page-panel">
-          <h2>Solutions Panel</h2>
-          <p class="muted">Store and manage notes for the currently selected PDF page.</p>
-
-          <label for="solution-question">Question</label>
-          <input id="solution-question" type="text" data-solution-question />
-
-          <label for="solution-explanation">Explanation</label>
-          <textarea id="solution-explanation" data-solution-explanation></textarea>
-
-          <label for="solution-answer">Answer</label>
-          <textarea id="solution-answer" data-solution-answer></textarea>
-
-          <p class="muted">Logic symbols</p>
-          <div class="symbol-grid" data-page-symbol-grid></div>
-
-          <div class="panel-actions">
-            <button type="button" data-page-add-solution>Add Solution Entry</button>
-            <button type="button" data-page-export>Export This Page JSON</button>
-          </div>
-          <p class="status" data-page-panel-status aria-live="polite"></p>
-
-          <h3 data-page-entries-title>Saved Entries For Page 1</h3>
-          <div data-page-entries></div>
-
-          <label for="page-export-output">Export Output</label>
-          <textarea id="page-export-output" data-page-export-output readonly></textarea>
-        </aside>
+      <section class="card">
+        <h2>Open Reader</h2>
+        <p>Renders each page in a two-column view with a dedicated solutions panel.</p>
+        <a href="/textbooks/logic-techniques-of-formal-reasoning/page.html?p=1">
+          Start reading from page 1 →
+        </a>
       </section>
 
       <h2>Contents</h2>
-      <p class="muted">You can still navigate by chapter from here.</p>
+      <p class="muted">Jump directly to a chapter.</p>
       <ol data-toc-list></ol>
     </main>
     <div data-site-footer></div>

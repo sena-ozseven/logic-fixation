@@ -141,17 +141,35 @@ button:hover {
   color: #065f46;
 }
 
-.book-workspace {
-  display: grid;
-  gap: 1rem;
+.panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
-.book-viewer,
-.page-panel {
+.entry-actions {
+  margin: 0.25rem 0 0.75rem;
+}
+
+/* ── Reader (page.html) ──────────────────────────────────────── */
+
+.reader-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.reader-layout {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.reader-pdf,
+.reader-panel {
   min-width: 0;
 }
 
-.page-controls {
+.reader-controls {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -159,42 +177,53 @@ button:hover {
   margin-bottom: 0.75rem;
 }
 
-.page-controls label {
-  margin: 0;
+.reader-controls a {
+  color: var(--accent);
+  text-decoration: none;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  white-space: nowrap;
 }
 
-.page-controls input[type="number"] {
-  width: 90px;
+.reader-controls a:hover {
+  background: #f3f4f6;
 }
 
-.pdf-frame {
-  width: 100%;
-  min-height: 720px;
+.reader-go-form {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.reader-go-form input[type="number"] {
+  width: 72px;
+}
+
+canvas[data-pdf-canvas] {
+  display: block;
+  max-width: 100%;
+  height: auto;
   border: 1px solid var(--border);
   border-radius: 6px;
 }
 
-.panel-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+.reader-back-link {
+  margin-top: 0.75rem;
 }
 
-.entry-list {
-  margin: 0;
-  padding-left: 1.15rem;
-}
-
-.entry-actions {
-  margin: 0.25rem 0 0.75rem;
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 @media (min-width: 1040px) {
-  .site-container {
-    max-width: 1200px;
-  }
-
-  .book-workspace {
-    grid-template-columns: 1.5fr 1fr;
+  .reader-layout {
+    grid-template-columns: 1.6fr 1fr;
+    align-items: start;
   }
 }
