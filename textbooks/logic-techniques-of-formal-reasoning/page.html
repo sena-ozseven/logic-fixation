@@ -27,13 +27,16 @@
               />
               <button type="submit">Go</button>
             </form>
-            <span class="muted" data-total-pages></span>
+            <span class="muted" data-page-label>Page 1</span>
             <a data-nav-jump-forward href="#" aria-label="Forward 10 pages">+10</a>
             <a data-nav-next href="#" aria-label="Next page">Next →</a>
           </nav>
 
-          <p class="muted" data-render-status>Loading PDF…</p>
-          <canvas data-pdf-canvas></canvas>
+          <iframe
+            data-pdf-frame
+            class="pdf-frame"
+            title="Logic: Techniques of Formal Reasoning"
+          ></iframe>
 
           <p class="muted reader-back-link">
             <a href="/textbooks/logic-techniques-of-formal-reasoning/">← Back to textbook contents</a>
@@ -42,9 +45,7 @@
 
         <aside class="reader-panel">
           <h2 data-panel-title>Solutions — Page 1</h2>
-          <p class="muted">
-            Notes for this page only. Saved locally in your browser.
-          </p>
+          <p class="muted">Notes for this page only. Saved locally in your browser.</p>
 
           <label for="sol-question">Question</label>
           <input id="sol-question" type="text" data-sol-question />
@@ -74,7 +75,6 @@
       </div>
     </main>
     <div data-site-footer></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="/assets/js/site.js"></script>
     <script src="/assets/js/pdf-viewer.js"></script>
   </body>

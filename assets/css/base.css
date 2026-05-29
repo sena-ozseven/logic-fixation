@@ -200,10 +200,10 @@ button:hover {
   width: 72px;
 }
 
-canvas[data-pdf-canvas] {
+.pdf-frame {
   display: block;
-  max-width: 100%;
-  height: auto;
+  width: 100%;
+  min-height: 820px;
   border: 1px solid var(--border);
   border-radius: 6px;
 }

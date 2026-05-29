@@ -1,15 +1,11 @@
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-
 const PDF_URL =
   "https://ia601504.us.archive.org/0/items/in.ernet.dli.2015.139500/2015.139500.Logic-Techniques-Of-Formal-Reasonong.pdf";
 const STORAGE_KEY = "logic-techniques-solutions-by-page-v1";
 const SYMBOLS = ["¬", "∧", "∨", "→", "↔", "∀", "∃", "⊢", "⊨", "⊥", "⊤", "□", "◇"];
 
-let pdfDoc = null;
 let currentPage = 1;
 
-// ── Storage ──────────────────────────────────────────────────────────────────
+// ── Storage ───────────────────────────────────────────────────────────────────
 
 function readStorage() {
   try {
@@ -45,6 +41,10 @@ function buildPageUrl(pageNum) {
   return url.toString();
 }
 
+function buildPdfSrc(pageNum) {
+  return `${PDF_URL}#page=${pageNum}&toolbar=0&navpanes=0&view=FitH`;
+}
+
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
 function escapeHtml(text) {
@@ -75,32 +75,29 @@ function showStatus(message, isError) {
 }
 
 function clearForm() {
-  const q = document.querySelector("[data-sol-question]");
-  const e = document.querySelector("[data-sol-explanation]");
-  const a = document.querySelector("[data-sol-answer]");
-  const out = document.querySelector("[data-export-out]");
-  if (q) q.value = "";
-  if (e) e.value = "";
-  if (a) a.value = "";
-  if (out) out.value = "";
+  const fields = ["[data-sol-question]", "[data-sol-explanation]", "[data-sol-answer]", "[data-export-out]"];
+  fields.forEach(function (sel) {
+    const el = document.querySelector(sel);
+    if (el) el.value = "";
+  });
   showStatus("", false);
 }
 
-// ── Render helpers ────────────────────────────────────────────────────────────
+// ── Render panel ──────────────────────────────────────────────────────────────
 
 function renderEntriesPanel(page) {
   const heading = document.querySelector("[data-entries-heading]");
   const list = document.querySelector("[data-entries-list]");
-  if (!list) return;
-
+  const panelTitle = document.querySelector("[data-panel-title]");
   if (heading) heading.textContent = `Saved for Page ${page}`;
+  if (panelTitle) panelTitle.textContent = `Solutions — Page ${page}`;
 
+  if (!list) return;
   const entries = getEntries(page);
   if (!entries.length) {
     list.innerHTML = '<p class="muted">No entries for this page yet.</p>';
     return;
   }
-
   list.innerHTML = entries
     .map(
       (entry, i) => `
@@ -117,20 +114,18 @@ function renderEntriesPanel(page) {
     .join("");
 }
 
+// ── Navigation controls ───────────────────────────────────────────────────────
+
 function updateNavControls(page) {
-  const panelTitle = document.querySelector("[data-panel-title]");
   const goInput = document.querySelector("[data-go-input]");
-  const totalPages = document.querySelector("[data-total-pages]");
+  const pageLabel = document.querySelector("[data-page-label]");
   const prevLink = document.querySelector("[data-nav-prev]");
   const nextLink = document.querySelector("[data-nav-next]");
   const jumpBack = document.querySelector("[data-nav-jump-back]");
   const jumpForward = document.querySelector("[data-nav-jump-forward]");
 
-  const total = pdfDoc ? pdfDoc.numPages : null;
-
-  if (panelTitle) panelTitle.textContent = `Solutions — Page ${page}`;
   if (goInput) goInput.value = String(page);
-  if (totalPages) totalPages.textContent = total ? `of ${total}` : "";
+  if (pageLabel) pageLabel.textContent = `Page ${page}`;
 
   function applyLink(el, href, disabled) {
     if (!el) return;
@@ -148,83 +143,51 @@ function updateNavControls(page) {
   }
 
   applyLink(prevLink, buildPageUrl(page - 1), page <= 1);
-  applyLink(nextLink, buildPageUrl(page + 1), total !== null && page >= total);
+  applyLink(nextLink, buildPageUrl(page + 1), false);
   applyLink(jumpBack, buildPageUrl(Math.max(1, page - 10)), page <= 1);
-  applyLink(
-    jumpForward,
-    buildPageUrl(total !== null ? Math.min(total, page + 10) : page + 10),
-    total !== null && page >= total
-  );
+  applyLink(jumpForward, buildPageUrl(page + 10), false);
 }
 
-async function renderPdfPage(page) {
-  const canvas = document.querySelector("[data-pdf-canvas]");
-  const status = document.querySelector("[data-render-status]");
-  if (!canvas || !pdfDoc) return;
-
-  const clamped = Math.max(1, Math.min(page, pdfDoc.numPages));
-
-  if (status) status.textContent = `Loading page ${clamped}…`;
-
-  const pdfPage = await pdfDoc.getPage(clamped);
-  const containerWidth =
-    canvas.closest(".reader-pdf")?.clientWidth || window.innerWidth * 0.6 || 700;
-  const baseViewport = pdfPage.getViewport({ scale: 1 });
-  const scale = Math.min(2.5, Math.max(1, containerWidth / baseViewport.width));
-  const viewport = pdfPage.getViewport({ scale });
-
-  canvas.width = viewport.width;
-  canvas.height = viewport.height;
-
-  await pdfPage.render({
-    canvasContext: canvas.getContext("2d"),
-    viewport,
-  }).promise;
-
-  if (status) status.textContent = "";
+function refreshPdfFrame(page) {
+  const frame = document.querySelector("[data-pdf-frame]");
+  if (!frame) return;
+  frame.src = buildPdfSrc(page);
 }
 
-// ── Navigation ────────────────────────────────────────────────────────────────
+// ── Core navigate ─────────────────────────────────────────────────────────────
 
-async function gotoPage(pageNum) {
-  if (!pdfDoc) return;
-  const clamped = Math.max(1, Math.min(pageNum, pdfDoc.numPages));
-  currentPage = clamped;
+function gotoPage(pageNum) {
+  const target = Math.max(1, pageNum);
+  currentPage = target;
 
-  history.pushState({ page: clamped }, "", buildPageUrl(clamped));
+  history.pushState({ page: target }, "", buildPageUrl(target));
+  document.title = `Page ${target} — Logic: Techniques of Formal Reasoning`;
 
-  document.title = `Page ${clamped} — Logic: Techniques of Formal Reasoning`;
-
+  refreshPdfFrame(target);
   clearForm();
-  updateNavControls(clamped);
-  renderEntriesPanel(clamped);
-  await renderPdfPage(clamped);
+  updateNavControls(target);
+  renderEntriesPanel(target);
 }
 
 // ── Event wiring ──────────────────────────────────────────────────────────────
 
 function wireNavLinks() {
-  const prevLink = document.querySelector("[data-nav-prev]");
-  const nextLink = document.querySelector("[data-nav-next]");
-  const jumpBack = document.querySelector("[data-nav-jump-back]");
-  const jumpForward = document.querySelector("[data-nav-jump-forward]");
+  const links = {
+    "[data-nav-prev]": () => currentPage - 1,
+    "[data-nav-next]": () => currentPage + 1,
+    "[data-nav-jump-back]": () => Math.max(1, currentPage - 10),
+    "[data-nav-jump-forward]": () => currentPage + 10,
+  };
 
-  function interceptLink(el, getTarget) {
+  Object.entries(links).forEach(function ([sel, getTarget]) {
+    const el = document.querySelector(sel);
     if (!el) return;
     el.addEventListener("click", function (event) {
       if (el.getAttribute("aria-disabled") === "true") return;
       event.preventDefault();
       gotoPage(getTarget());
     });
-  }
-
-  interceptLink(prevLink, () => currentPage - 1);
-  interceptLink(nextLink, () => currentPage + 1);
-  interceptLink(jumpBack, () => Math.max(1, currentPage - 10));
-  interceptLink(
-    jumpForward,
-    () => (pdfDoc ? Math.min(pdfDoc.numPages, currentPage + 10) : currentPage + 10)
-  );
+  });
 }
 
 function wireGoForm() {
@@ -243,10 +206,8 @@ function wireGoForm() {
 function wireSymbolKeyboard() {
   const grid = document.querySelector("[data-sym-grid]");
   if (!grid) return;
-
   grid.innerHTML = SYMBOLS.map(
-    (s) =>
-      `<button type="button" class="symbol-btn" data-sym="${s}">${s}</button>`
+    (s) => `<button type="button" class="symbol-btn" data-sym="${s}">${s}</button>`
   ).join("");
 
   grid.addEventListener("click", function (event) {
@@ -256,11 +217,7 @@ function wireSymbolKeyboard() {
     const active = document.activeElement;
     const explanation = document.querySelector("[data-sol-explanation]");
     const answer = document.querySelector("[data-sol-answer]");
-    if (active === explanation || active === answer) {
-      insertAtCursor(active, symbol);
-    } else {
-      insertAtCursor(answer, symbol);
-    }
+    insertAtCursor(active === explanation || active === answer ? active : answer, symbol);
   });
 }
 
@@ -271,19 +228,16 @@ function wireSaveEntry() {
     const q = document.querySelector("[data-sol-question]")?.value.trim();
     const e = document.querySelector("[data-sol-explanation]")?.value.trim();
     const a = document.querySelector("[data-sol-answer]")?.value.trim();
-
     if (!q || !e || !a) {
       showStatus("Question, explanation, and answer are all required.", true);
       return;
     }
-
     const storage = readStorage();
     const key = String(currentPage);
     const entries = Array.isArray(storage[key]) ? storage[key] : [];
     entries.push({ question: q, explanation: e, answer: a });
     storage[key] = entries;
     writeStorage(storage);
-
     clearForm();
     renderEntriesPanel(currentPage);
     showStatus(`Entry saved for page ${currentPage}.`, false);
@@ -314,32 +268,30 @@ function wireExport() {
   const out = document.querySelector("[data-export-out]");
   if (!btn || !out) return;
   btn.addEventListener("click", function () {
-    const payload = {
-      page: currentPage,
-      source: "Logic: Techniques of Formal Reasoning",
-      entries: getEntries(currentPage),
-    };
-    out.value = JSON.stringify(payload, null, 2);
+    out.value = JSON.stringify(
+      { page: currentPage, source: "Logic: Techniques of Formal Reasoning", entries: getEntries(currentPage) },
+      null,
+      2
+    );
     showStatus("JSON exported below.", false);
   });
 }
 
 function wirePopState() {
-  window.addEventListener("popstate", async function (event) {
-    const page =
-      event.state?.page ?? getPageFromUrl();
+  window.addEventListener("popstate", function (event) {
+    const page = event.state?.page ?? getPageFromUrl();
     currentPage = page;
+    refreshPdfFrame(page);
     clearForm();
     updateNavControls(page);
     renderEntriesPanel(page);
-    await renderPdfPage(page);
   });
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
-document.addEventListener("DOMContentLoaded", async function () {
-  if (!document.querySelector("[data-pdf-canvas]")) return;
+document.addEventListener("DOMContentLoaded", function () {
+  if (!document.querySelector("[data-pdf-frame]")) return;
 
   wireNavLinks();
   wireGoForm();
@@ -349,21 +301,11 @@ document.addEventListener("DOMContentLoaded", async function () {
   wireExport();
   wirePopState();
 
-  const status = document.querySelector("[data-render-status]");
-  if (status) status.textContent = "Downloading PDF…";
-
-  try {
-    pdfDoc = await pdfjsLib.getDocument({ url: PDF_URL, withCredentials: false }).promise;
-  } catch (err) {
-    if (status) status.textContent = "Failed to load PDF. Check your connection.";
-    return;
-  }
-
   currentPage = getPageFromUrl();
   history.replaceState({ page: currentPage }, "", buildPageUrl(currentPage));
   document.title = `Page ${currentPage} — Logic: Techniques of Formal Reasoning`;
 
+  refreshPdfFrame(currentPage);
   updateNavControls(currentPage);
   renderEntriesPanel(currentPage);
-  await renderPdfPage(currentPage);
 });
