@@ -1,9 +1,12 @@
 :root {
-  --text: #1f2937;
+  --text: #111827;
   --background: #ffffff;
   --muted: #6b7280;
-  --border: #d1d5db;
-  --accent: #1d4ed8;
+  --border: #b0b8c4;
+  --accent: #1e3a5f;
+  --reader-bg: #fafaf8;
+  --reader-panel-bg: #f5f4f0;
+  --reader-divider: #dcd8d0;
 }
 
 *,
@@ -154,14 +157,16 @@ button:hover {
 /* ── Reader (page.html) ──────────────────────────────────────── */
 
 .reader-container {
-  max-width: 1400px;
+  max-width: 1500px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 0;
+  background: var(--reader-bg);
+  min-height: 100vh;
 }
 
 .reader-layout {
   display: grid;
-  gap: 1.25rem;
+  gap: 0;
 }
 
 .reader-pdf,
@@ -169,49 +174,358 @@ button:hover {
   min-width: 0;
 }
 
+/* ── Book title bar ── */
+.reader-page-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1.25rem;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.reader-book-title {
+  font-size: 0.9rem;
+  font-style: italic;
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reader-page-badge {
+  font-size: 0.85rem;
+  font-weight: bold;
+  background: rgba(255,255,255,0.18);
+  padding: 0.2rem 0.65rem;
+  border-radius: 20px;
+  white-space: nowrap;
+  margin-left: 1rem;
+}
+
+/* ── Navigation bar ── */
 .reader-controls {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
   align-items: center;
-  margin-bottom: 0.75rem;
+  justify-content: space-between;
+  padding: 0.6rem 1.25rem;
+  background: #ffffff;
+  border-bottom: 1px solid var(--reader-divider);
+  gap: 0.5rem;
+}
+
+.reader-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.reader-nav-center {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.95rem;
+  color: var(--text);
 }
 
 .reader-controls a {
   color: var(--accent);
   text-decoration: none;
-  padding: 0.3rem 0.5rem;
+  padding: 0.3rem 0.6rem;
   border: 1px solid var(--border);
   border-radius: 4px;
+  font-size: 0.875rem;
   white-space: nowrap;
+  background: #f9f8f6;
 }
 
 .reader-controls a:hover {
-  background: #f3f4f6;
+  background: #eeecea;
+}
+
+.reader-controls a[aria-disabled="true"] {
+  opacity: 0.35;
+  pointer-events: none;
 }
 
 .reader-go-form {
   display: flex;
-  gap: 0.35rem;
+  gap: 0.3rem;
   align-items: center;
 }
 
 .reader-go-form input[type="number"] {
-  width: 72px;
+  width: 64px;
+  text-align: center;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.reader-total-pages {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+/* ── PDF iframe ── */
+.reader-pdf-body {
+  padding: 0.75rem 1.25rem 1rem;
 }
 
 .pdf-frame {
   display: block;
   width: 100%;
-  min-height: 820px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  min-height: 88vh;
+  border: 1px solid var(--reader-divider);
+  border-radius: 4px;
+  background: #fff;
 }
 
 .reader-back-link {
+  margin-top: 0.6rem;
+  font-size: 0.875rem;
+}
+
+/* ── Solutions panel ── */
+.reader-panel {
+  background: var(--reader-panel-bg);
+  border-left: 1px solid var(--reader-divider);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.panel-section {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--reader-divider);
+}
+
+.panel-section:last-child {
+  border-bottom: none;
+}
+
+.panel-section-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 0.75rem;
+}
+
+.reader-panel h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.05rem;
+  margin: 0 0 0.25rem;
+  color: var(--text);
+}
+
+.reader-panel label {
+  font-size: 0.825rem;
+  color: var(--muted);
+  margin: 0.6rem 0 0.2rem;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.reader-panel textarea {
+  min-height: 80px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.9rem;
+  background: #ffffff;
+}
+
+.reader-panel input[type="text"] {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.9rem;
+  background: #ffffff;
+}
+
+/* ── Symbol keyboard ── */
+.symbol-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.symbol-btn {
+  padding: 0.3rem 0.5rem;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #ffffff;
+  cursor: pointer;
+  position: relative;
+  min-width: 36px;
+  text-align: center;
+}
+
+.symbol-btn:hover {
+  background: #eeecea;
+}
+
+/* Tooltip */
+.symbol-btn[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e3a5f;
+  color: #fff;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 10;
+}
+
+.symbol-btn[data-tip]:hover::after {
+  opacity: 1;
+}
+
+/* ── Saved entries ── */
+.entry-item {
+  border: 1px solid var(--reader-divider);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  background: #fff;
+  overflow: hidden;
+}
+
+.entry-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-family: Georgia, "Times New Roman", serif;
+  gap: 0.5rem;
+}
+
+.entry-summary:hover {
+  background: #f0eeea;
+}
+
+.entry-summary-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  flex: 1;
+}
+
+.entry-toggle-icon {
+  color: var(--muted);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.entry-detail {
+  display: none;
+  padding: 0.6rem 0.75rem;
+  border-top: 1px solid var(--reader-divider);
+  font-size: 0.85rem;
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.55;
+}
+
+.entry-detail p {
+  margin: 0.3rem 0;
+}
+
+.entry-detail.open {
+  display: block;
+}
+
+.entry-delete-btn {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  margin-top: 0.4rem;
+  color: #b91c1c;
+  border-color: #fca5a5;
+  background: #fff1f2;
+}
+
+.entry-delete-btn:hover {
+  background: #fee2e2;
+}
+
+/* ── Panel action buttons ── */
+.panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-top: 0.75rem;
 }
 
+.btn-primary {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+  font-size: 0.875rem;
+  padding: 0.45rem 0.9rem;
+}
+
+.btn-primary:hover {
+  background: #162d4a;
+  border-color: #162d4a;
+}
+
+.btn-secondary {
+  font-size: 0.875rem;
+  padding: 0.45rem 0.9rem;
+}
+
+/* ── Export section (collapsed by default) ── */
+.export-section {
+  padding: 0.75rem 1.25rem 1rem;
+}
+
+.export-toggle {
+  font-size: 0.8rem;
+  color: var(--muted);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.export-toggle:hover {
+  color: var(--text);
+  background: none;
+}
+
+.export-body {
+  display: none;
+  margin-top: 0.6rem;
+}
+
+.export-body.open {
+  display: block;
+}
+
+.export-body textarea {
+  min-height: 100px;
+  font-family: "Courier New", monospace;
+  font-size: 0.8rem;
+  background: #ffffff;
+}
+
+/* ── Status message ── */
+.status {
+  margin-top: 0.5rem;
+  color: #065f46;
+  font-size: 0.825rem;
+}
+
+/* ── Utilities ── */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -223,7 +537,14 @@ button:hover {
 
 @media (min-width: 1040px) {
   .reader-layout {
-    grid-template-columns: 1.6fr 1fr;
+    grid-template-columns: 1.65fr 1fr;
     align-items: start;
+  }
+
+  .reader-panel {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
   }
 }

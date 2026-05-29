@@ -1,7 +1,22 @@
 const PDF_URL =
   "https://ia601504.us.archive.org/0/items/in.ernet.dli.2015.139500/2015.139500.Logic-Techniques-Of-Formal-Reasonong.pdf";
 const STORAGE_KEY = "logic-techniques-solutions-by-page-v1";
-const SYMBOLS = ["¬", "∧", "∨", "→", "↔", "∀", "∃", "⊢", "⊨", "⊥", "⊤", "□", "◇"];
+
+const SYMBOLS = [
+  { sym: "¬", tip: "Negation" },
+  { sym: "∧", tip: "Conjunction (and)" },
+  { sym: "∨", tip: "Disjunction (or)" },
+  { sym: "→", tip: "Conditional (if…then)" },
+  { sym: "↔", tip: "Biconditional (iff)" },
+  { sym: "∀", tip: "Universal quantifier" },
+  { sym: "∃", tip: "Existential quantifier" },
+  { sym: "⊢", tip: "Turnstile (proves)" },
+  { sym: "⊨", tip: "Semantic consequence" },
+  { sym: "⊥", tip: "Contradiction / False" },
+  { sym: "⊤", tip: "Tautology / True" },
+  { sym: "□", tip: "Necessity (modal)" },
+  { sym: "◇", tip: "Possibility (modal)" },
+];
 
 let currentPage = 1;
 
@@ -75,11 +90,14 @@ function showStatus(message, isError) {
 }
 
 function clearForm() {
-  const fields = ["[data-sol-question]", "[data-sol-explanation]", "[data-sol-answer]", "[data-export-out]"];
-  fields.forEach(function (sel) {
-    const el = document.querySelector(sel);
-    if (el) el.value = "";
-  });
+  ["[data-sol-question]", "[data-sol-explanation]", "[data-sol-answer]"].forEach(
+    function (sel) {
+      const el = document.querySelector(sel);
+      if (el) el.value = "";
+    }
+  );
+  const exportOut = document.querySelector("[data-export-out]");
+  if (exportOut) exportOut.value = "";
   showStatus("", false);
 }
 
@@ -89,28 +107,39 @@ function renderEntriesPanel(page) {
   const heading = document.querySelector("[data-entries-heading]");
   const list = document.querySelector("[data-entries-list]");
   const panelTitle = document.querySelector("[data-panel-title]");
-  if (heading) heading.textContent = `Saved for Page ${page}`;
+  const pageLabel = document.querySelector("[data-page-label]");
+
+  if (heading) heading.textContent = `Saved — Page ${page}`;
   if (panelTitle) panelTitle.textContent = `Solutions — Page ${page}`;
+  if (pageLabel) pageLabel.textContent = `Page ${page}`;
 
   if (!list) return;
   const entries = getEntries(page);
+
   if (!entries.length) {
-    list.innerHTML = '<p class="muted">No entries for this page yet.</p>';
+    list.innerHTML = '<p class="muted" style="font-size:0.825rem;">No entries for this page yet.</p>';
     return;
   }
+
   list.innerHTML = entries
-    .map(
-      (entry, i) => `
-      <article class="card">
-        <h4>Entry ${i + 1}</h4>
-        <p><strong>Question:</strong> ${escapeHtml(entry.question)}</p>
-        <p><strong>Explanation:</strong> ${escapeHtml(entry.explanation)}</p>
-        <p><strong>Answer:</strong> ${escapeHtml(entry.answer)}</p>
-        <div class="entry-actions">
-          <button type="button" data-delete-entry="${i}">Delete</button>
-        </div>
-      </article>`
-    )
+    .map(function (entry, i) {
+      const preview = entry.question.length > 48
+        ? entry.question.slice(0, 48) + "…"
+        : entry.question;
+      return `
+        <div class="entry-item" data-entry-item="${i}">
+          <div class="entry-summary" data-entry-toggle="${i}">
+            <span class="entry-summary-text">Q: ${escapeHtml(preview)}</span>
+            <span class="entry-toggle-icon">▸</span>
+          </div>
+          <div class="entry-detail" id="entry-detail-${i}">
+            <p><strong>Question:</strong> ${escapeHtml(entry.question)}</p>
+            <p><strong>Explanation:</strong> ${escapeHtml(entry.explanation)}</p>
+            <p><strong>Answer:</strong> ${escapeHtml(entry.answer)}</p>
+            <button type="button" class="entry-delete-btn" data-delete-entry="${i}">Delete entry</button>
+          </div>
+        </div>`;
+    })
     .join("");
 }
 
@@ -118,27 +147,23 @@ function renderEntriesPanel(page) {
 
 function updateNavControls(page) {
   const goInput = document.querySelector("[data-go-input]");
-  const pageLabel = document.querySelector("[data-page-label]");
+  const totalPages = document.querySelector("[data-total-pages]");
   const prevLink = document.querySelector("[data-nav-prev]");
   const nextLink = document.querySelector("[data-nav-next]");
   const jumpBack = document.querySelector("[data-nav-jump-back]");
   const jumpForward = document.querySelector("[data-nav-jump-forward]");
 
   if (goInput) goInput.value = String(page);
-  if (pageLabel) pageLabel.textContent = `Page ${page}`;
+  if (totalPages) totalPages.textContent = "";
 
   function applyLink(el, href, disabled) {
     if (!el) return;
     if (disabled) {
       el.removeAttribute("href");
       el.setAttribute("aria-disabled", "true");
-      el.style.opacity = "0.35";
-      el.style.pointerEvents = "none";
     } else {
       el.href = href;
       el.removeAttribute("aria-disabled");
-      el.style.opacity = "";
-      el.style.pointerEvents = "";
     }
   }
 
@@ -172,14 +197,13 @@ function gotoPage(pageNum) {
 // ── Event wiring ──────────────────────────────────────────────────────────────
 
 function wireNavLinks() {
-  const links = {
+  const defs = {
     "[data-nav-prev]": () => currentPage - 1,
     "[data-nav-next]": () => currentPage + 1,
     "[data-nav-jump-back]": () => Math.max(1, currentPage - 10),
     "[data-nav-jump-forward]": () => currentPage + 10,
   };
-
-  Object.entries(links).forEach(function ([sel, getTarget]) {
+  Object.entries(defs).forEach(function ([sel, getTarget]) {
     const el = document.querySelector(sel);
     if (!el) return;
     el.addEventListener("click", function (event) {
@@ -206,9 +230,10 @@ function wireGoForm() {
 function wireSymbolKeyboard() {
   const grid = document.querySelector("[data-sym-grid]");
   if (!grid) return;
-  grid.innerHTML = SYMBOLS.map(
-    (s) => `<button type="button" class="symbol-btn" data-sym="${s}">${s}</button>`
-  ).join("");
+
+  grid.innerHTML = SYMBOLS.map(function ({ sym, tip }) {
+    return `<button type="button" class="symbol-btn" data-sym="${sym}" data-tip="${tip}" title="${tip}">${sym}</button>`;
+  }).join("");
 
   grid.addEventListener("click", function (event) {
     const btn = event.target.closest("[data-sym]");
@@ -244,37 +269,67 @@ function wireSaveEntry() {
   });
 }
 
-function wireDeleteEntry() {
+function wireEntryInteractions() {
   const list = document.querySelector("[data-entries-list]");
   if (!list) return;
+
   list.addEventListener("click", function (event) {
-    const btn = event.target.closest("[data-delete-entry]");
-    if (!btn) return;
-    const index = parseInt(btn.getAttribute("data-delete-entry"), 10);
-    const storage = readStorage();
-    const key = String(currentPage);
-    const entries = Array.isArray(storage[key]) ? storage[key] : [];
-    if (!Number.isInteger(index) || index < 0 || index >= entries.length) return;
-    entries.splice(index, 1);
-    storage[key] = entries;
-    writeStorage(storage);
-    renderEntriesPanel(currentPage);
-    showStatus(`Deleted entry ${index + 1} on page ${currentPage}.`, false);
+    // Toggle expand/collapse
+    const toggleBtn = event.target.closest("[data-entry-toggle]");
+    if (toggleBtn) {
+      const index = toggleBtn.getAttribute("data-entry-toggle");
+      const detail = document.getElementById(`entry-detail-${index}`);
+      const icon = toggleBtn.querySelector(".entry-toggle-icon");
+      if (detail) {
+        detail.classList.toggle("open");
+        if (icon) icon.textContent = detail.classList.contains("open") ? "▾" : "▸";
+      }
+      return;
+    }
+
+    // Delete
+    const deleteBtn = event.target.closest("[data-delete-entry]");
+    if (deleteBtn) {
+      const index = parseInt(deleteBtn.getAttribute("data-delete-entry"), 10);
+      const storage = readStorage();
+      const key = String(currentPage);
+      const entries = Array.isArray(storage[key]) ? storage[key] : [];
+      if (!Number.isInteger(index) || index < 0 || index >= entries.length) return;
+      entries.splice(index, 1);
+      storage[key] = entries;
+      writeStorage(storage);
+      renderEntriesPanel(currentPage);
+      showStatus(`Deleted entry ${index + 1} on page ${currentPage}.`, false);
+    }
   });
 }
 
 function wireExport() {
-  const btn = document.querySelector("[data-export-page]");
+  const toggleBtn = document.querySelector("[data-export-toggle]");
+  const exportBody = document.querySelector("[data-export-body]");
+  const generateBtn = document.querySelector("[data-export-page]");
   const out = document.querySelector("[data-export-out]");
-  if (!btn || !out) return;
-  btn.addEventListener("click", function () {
-    out.value = JSON.stringify(
-      { page: currentPage, source: "Logic: Techniques of Formal Reasoning", entries: getEntries(currentPage) },
-      null,
-      2
-    );
-    showStatus("JSON exported below.", false);
-  });
+
+  if (toggleBtn && exportBody) {
+    toggleBtn.addEventListener("click", function () {
+      const isOpen = exportBody.classList.toggle("open");
+      toggleBtn.textContent = isOpen ? "Export page JSON ▾" : "Export page JSON ▸";
+    });
+  }
+
+  if (generateBtn && out) {
+    generateBtn.addEventListener("click", function () {
+      out.value = JSON.stringify(
+        {
+          page: currentPage,
+          source: "Logic: Techniques of Formal Reasoning",
+          entries: getEntries(currentPage),
+        },
+        null,
+        2
+      );
+    });
+  }
 }
 
 function wirePopState() {
@@ -297,7 +352,7 @@ document.addEventListener("DOMContentLoaded", function () {
   wireGoForm();
   wireSymbolKeyboard();
   wireSaveEntry();
-  wireDeleteEntry();
+  wireEntryInteractions();
   wireExport();
   wirePopState();
 
