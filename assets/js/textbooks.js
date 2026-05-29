@@ -6,8 +6,8 @@ async function fetchJson(path) {
   return response.json();
 }
 
-function buildChapterUrl(bookSlug, chapterSlug) {
-  return `/textbooks/${bookSlug}/chapter.html?book=${encodeURIComponent(bookSlug)}&chapter=${encodeURIComponent(chapterSlug)}`;
+function buildReaderUrl(bookSlug, startPage) {
+  return `/textbooks/${bookSlug}/page.html?p=${startPage}`;
 }
 
 async function renderBookPage() {
@@ -17,14 +17,23 @@ async function renderBookPage() {
   }
 
   const book = await fetchJson("/content/textbooks/logic-techniques-of-formal-reasoning/book.json");
-  const items = book.chapters
+
+  const chapterItems = book.chapters
     .map(function toItem(chapter) {
-      const href = buildChapterUrl(book.slug, chapter.slug);
-      return `<li><a href="${href}">Chapter ${chapter.number}: ${chapter.title}</a> <span class="muted">(${chapter.status})</span></li>`;
+      const href = buildReaderUrl(book.slug, chapter.startPage);
+      const statusLabel = chapter.status === "sample-complete" ? "" : ` <span class="muted">(${chapter.status})</span>`;
+      return `<li><a href="${href}">Chapter ${chapter.number}: ${chapter.title}</a>${statusLabel}</li>`;
     })
     .join("");
 
-  tocTarget.innerHTML = items;
+  const backmatterItems = (book.backmatter || [])
+    .map(function toItem(item) {
+      const href = buildReaderUrl(book.slug, item.startPage);
+      return `<li><a href="${href}">${item.title}</a></li>`;
+    })
+    .join("");
+
+  tocTarget.innerHTML = chapterItems + (backmatterItems ? `<li class="muted" style="list-style:none; margin-top:0.75rem; font-size:0.85rem;">Back matter</li>${backmatterItems}` : "");
 }
 
 const PDF_URL = "https://ia601504.us.archive.org/0/items/in.ernet.dli.2015.139500/2015.139500.Logic-Techniques-Of-Formal-Reasonong.pdf";
