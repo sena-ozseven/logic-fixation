@@ -4,7 +4,7 @@
   "author": "Donald Kalish, Richard Montague, Gary Mar",
   "totalPages": 354,
   "chapters": [
-    { "number": 1, "slug": "chapter-01", "title": "\"NOT\" and \"IF\"",                    "startPage": 10,  "status": "sample-complete" },
+    { "number": 1, "slug": "chapter-01", "title": "\"NOT\" and \"IF\"",                    "startPage": 9,   "status": "sample-complete" },
     { "number": 2, "slug": "chapter-02", "title": "\"AND\", \"OR\", \"IF AND ONLY IF\"",   "startPage": 45,  "status": "sample-complete" },
     { "number": 3, "slug": "chapter-03", "title": "\"ALL\" and \"SOME\"",                  "startPage": 91,  "status": "sample-complete" },
     { "number": 4, "slug": "chapter-04", "title": "\"ALL\" and \"SOME\", continued",       "startPage": 137, "status": "scaffolded" },
