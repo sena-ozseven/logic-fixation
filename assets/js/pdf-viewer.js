@@ -248,10 +248,12 @@ function wireSymbolKeyboard() {
     if (!btn) return;
     const symbol = btn.getAttribute("data-sym");
     const active = document.activeElement;
+    const question    = document.querySelector("[data-sol-question]");
     const explanation = document.querySelector("[data-sol-explanation]");
-    const answer = document.querySelector("[data-sol-answer]");
+    const answer      = document.querySelector("[data-sol-answer]");
+    const textareas   = [question, explanation, answer];
     insertAtCursor(
-      active === explanation || active === answer ? active : answer,
+      textareas.includes(active) ? active : answer,
       symbol
     );
   });
