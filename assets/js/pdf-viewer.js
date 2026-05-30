@@ -243,19 +243,25 @@ function wireSymbolKeyboard() {
     return `<button type="button" class="symbol-btn" data-sym="${sym}" data-tip="${tip}" title="${tip}">${sym}</button>`;
   }).join("");
 
+  // Track the last focused entry textarea so clicking a symbol button
+  // (which normally steals focus) still knows where to insert.
+  let lastFocused = null;
+  ["[data-sol-question]", "[data-sol-explanation]", "[data-sol-answer]"].forEach(
+    function (sel) {
+      const el = document.querySelector(sel);
+      if (el) el.addEventListener("focus", function () { lastFocused = el; });
+    }
+  );
+
+  // Prevent mousedown from stealing focus away from the textarea.
+  grid.addEventListener("mousedown", function (event) {
+    if (event.target.closest("[data-sym]")) event.preventDefault();
+  });
+
   grid.addEventListener("click", function (event) {
     const btn = event.target.closest("[data-sym]");
-    if (!btn) return;
-    const symbol = btn.getAttribute("data-sym");
-    const active = document.activeElement;
-    const question    = document.querySelector("[data-sol-question]");
-    const explanation = document.querySelector("[data-sol-explanation]");
-    const answer      = document.querySelector("[data-sol-answer]");
-    const textareas   = [question, explanation, answer];
-    insertAtCursor(
-      textareas.includes(active) ? active : answer,
-      symbol
-    );
+    if (!btn || !lastFocused) return;
+    insertAtCursor(lastFocused, btn.getAttribute("data-sym"));
   });
 }
 
