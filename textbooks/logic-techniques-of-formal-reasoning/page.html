@@ -59,6 +59,33 @@
               alt="Page 1 of Logic: Techniques of Formal Reasoning"
               src=""
             />
+
+            <!-- Bottom navigation (mirrors top bar) -->
+            <nav class="reader-controls reader-controls-bottom" aria-label="Page navigation (bottom)">
+              <div class="reader-nav-group">
+                <a data-nav-prev href="#" aria-label="Previous page">← Prev</a>
+                <a data-nav-jump-back href="#" aria-label="Back 10 pages">−10</a>
+              </div>
+              <div class="reader-nav-center">
+                <form data-go-form class="reader-go-form">
+                  <label for="go-input-bottom" class="sr-only">Page number</label>
+                  <input
+                    id="go-input-bottom"
+                    type="number"
+                    min="1"
+                    value="1"
+                    data-go-input
+                    aria-label="Go to page"
+                  />
+                  <button type="submit" class="btn-secondary">Go</button>
+                </form>
+              </div>
+              <div class="reader-nav-group">
+                <a data-nav-jump-forward href="#" aria-label="Forward 10 pages">+10</a>
+                <a data-nav-next href="#" aria-label="Next page">Next →</a>
+              </div>
+            </nav>
+
             <p class="muted reader-back-link">
               <a href="/textbooks/logic-techniques-of-formal-reasoning/">← Back to textbook contents</a>
             </p>

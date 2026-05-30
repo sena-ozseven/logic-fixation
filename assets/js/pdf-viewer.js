@@ -152,29 +152,26 @@ function renderEntriesPanel(page) {
 // ── Navigation controls ───────────────────────────────────────────────────────
 
 function updateNavControls(page) {
-  const goInput = document.querySelector("[data-go-input]");
-  const prevLink = document.querySelector("[data-nav-prev]");
-  const nextLink = document.querySelector("[data-nav-next]");
-  const jumpBack = document.querySelector("[data-nav-jump-back]");
-  const jumpForward = document.querySelector("[data-nav-jump-forward]");
+  document.querySelectorAll("[data-go-input]").forEach(function (el) {
+    el.value = String(page);
+  });
 
-  if (goInput) goInput.value = String(page);
-
-  function applyLink(el, href, disabled) {
-    if (!el) return;
-    if (disabled) {
-      el.removeAttribute("href");
-      el.setAttribute("aria-disabled", "true");
-    } else {
-      el.href = href;
-      el.removeAttribute("aria-disabled");
-    }
+  function applyLinks(selector, href, disabled) {
+    document.querySelectorAll(selector).forEach(function (el) {
+      if (disabled) {
+        el.removeAttribute("href");
+        el.setAttribute("aria-disabled", "true");
+      } else {
+        el.href = href;
+        el.removeAttribute("aria-disabled");
+      }
+    });
   }
 
-  applyLink(prevLink, buildPageUrl(page - 1), page <= 1);
-  applyLink(nextLink, buildPageUrl(page + 1), page >= TOTAL_PAGES);
-  applyLink(jumpBack, buildPageUrl(Math.max(1, page - 10)), page <= 1);
-  applyLink(jumpForward, buildPageUrl(Math.min(TOTAL_PAGES, page + 10)), page >= TOTAL_PAGES);
+  applyLinks("[data-nav-prev]",         buildPageUrl(page - 1),                          page <= 1);
+  applyLinks("[data-nav-next]",         buildPageUrl(page + 1),                          page >= TOTAL_PAGES);
+  applyLinks("[data-nav-jump-back]",    buildPageUrl(Math.max(1, page - 10)),             page <= 1);
+  applyLinks("[data-nav-jump-forward]", buildPageUrl(Math.min(TOTAL_PAGES, page + 10)),  page >= TOTAL_PAGES);
 }
 
 function refreshPageImage(page) {
@@ -203,42 +200,38 @@ function gotoPage(pageNum) {
   clearForm();
   updateNavControls(target);
   renderEntriesPanel(target);
-
-  // Scroll to top of page image on navigation
-  const imgEl = document.querySelector("[data-page-img]");
-  if (imgEl) imgEl.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 // ── Event wiring ──────────────────────────────────────────────────────────────
 
 function wireNavLinks() {
   const defs = {
-    "[data-nav-prev]": () => currentPage - 1,
-    "[data-nav-next]": () => currentPage + 1,
-    "[data-nav-jump-back]": () => Math.max(1, currentPage - 10),
+    "[data-nav-prev]":         () => currentPage - 1,
+    "[data-nav-next]":         () => currentPage + 1,
+    "[data-nav-jump-back]":    () => Math.max(1, currentPage - 10),
     "[data-nav-jump-forward]": () => Math.min(TOTAL_PAGES, currentPage + 10),
   };
   Object.entries(defs).forEach(function ([sel, getTarget]) {
-    const el = document.querySelector(sel);
-    if (!el) return;
-    el.addEventListener("click", function (event) {
-      if (el.getAttribute("aria-disabled") === "true") return;
-      event.preventDefault();
-      gotoPage(getTarget());
+    document.querySelectorAll(sel).forEach(function (el) {
+      el.addEventListener("click", function (event) {
+        if (el.getAttribute("aria-disabled") === "true") return;
+        event.preventDefault();
+        gotoPage(getTarget());
+      });
     });
   });
 }
 
 function wireGoForm() {
-  const form = document.querySelector("[data-go-form]");
-  if (!form) return;
-  form.addEventListener("submit", function (event) {
-    event.preventDefault();
-    const input = form.querySelector("[data-go-input]");
-    const target = parseInt(input.value, 10);
-    if (Number.isInteger(target) && target >= 1 && target <= TOTAL_PAGES) {
-      gotoPage(target);
-    }
+  document.querySelectorAll("[data-go-form]").forEach(function (form) {
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      const input = form.querySelector("[data-go-input]");
+      const target = parseInt(input.value, 10);
+      if (Number.isInteger(target) && target >= 1 && target <= TOTAL_PAGES) {
+        gotoPage(target);
+      }
+    });
   });
 }
 
