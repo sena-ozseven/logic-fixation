@@ -40,9 +40,125 @@
         <h2>Generated Snippet</h2>
         <textarea data-output readonly></textarea>
       </section>
+
+      <section class="card">
+        <h2>All Solutions <span class="muted" style="font-size:0.875rem;">(moderation)</span></h2>
+        <p id="admin-spam-notice" class="muted">Sign in as admin to manage solutions.</p>
+        <div id="admin-spam-controls" hidden>
+          <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+            <label for="admin-filter-page" style="margin:0;">Filter by page:</label>
+            <input id="admin-filter-page" type="number" min="1" placeholder="All pages" style="width:110px;" />
+            <button type="button" id="admin-load-solutions" class="btn-secondary">Load solutions</button>
+          </div>
+        </div>
+        <div id="admin-solutions-container"></div>
+      </section>
     </main>
     <div data-site-footer></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/supabase-client.js"></script>
     <script src="/assets/js/site.js"></script>
+    <script src="/assets/js/auth.js"></script>
     <script src="/assets/js/logic-keyboard.js"></script>
+    <script>
+      // ── Spam Management ─────────────────────────────────────────────────────
+
+      function escapeHtmlAdmin(text) {
+        return String(text)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      function renderAdminTable(solutions) {
+        const container = document.getElementById("admin-solutions-container");
+        if (!container) return;
+
+        if (!solutions.length) {
+          container.innerHTML = '<p class="muted">No solutions found.</p>';
+          return;
+        }
+
+        container.innerHTML = `
+          <table class="admin-solutions-table">
+            <thead>
+              <tr>
+                <th>Page</th>
+                <th>Question</th>
+                <th>By</th>
+                <th>Date</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${solutions.map(function (s) {
+                const preview  = s.question.length > 55 ? s.question.slice(0, 55) + "…" : s.question;
+                const username = s.profiles?.username || "Unknown";
+                const date     = new Date(s.created_at).toLocaleDateString();
+                return `<tr data-solution-row="${s.id}">
+                  <td>${s.page_number}</td>
+                  <td>${escapeHtmlAdmin(preview)}</td>
+                  <td>${escapeHtmlAdmin(username)}</td>
+                  <td>${date}</td>
+                  <td>
+                    <button class="btn-danger" data-admin-delete="${s.id}">Delete</button>
+                  </td>
+                </tr>`;
+              }).join("")}
+            </tbody>
+          </table>`;
+
+        container.querySelectorAll("[data-admin-delete]").forEach(function (btn) {
+          btn.addEventListener("click", async function () {
+            const id = btn.getAttribute("data-admin-delete");
+            if (!confirm("Delete this solution permanently?")) return;
+            const { error } = await db.from("solutions").delete().eq("id", id);
+            if (error) { alert(error.message); return; }
+            const row = document.querySelector(`[data-solution-row="${id}"]`);
+            if (row) row.remove();
+          });
+        });
+      }
+
+      function updateAdminPanel(isAdmin) {
+        const controls = document.getElementById("admin-spam-controls");
+        const notice   = document.getElementById("admin-spam-notice");
+        if (controls) controls.hidden = !isAdmin;
+        if (notice)   notice.hidden   = isAdmin;
+      }
+
+      document.addEventListener("authstatechange", function () {
+        const isAdmin = window.authState?.profile?.role === "admin";
+        updateAdminPanel(isAdmin);
+        if (!isAdmin) {
+          const container = document.getElementById("admin-solutions-container");
+          if (container) container.innerHTML = "";
+        }
+      });
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const loadBtn   = document.getElementById("admin-load-solutions");
+        const filterEl  = document.getElementById("admin-filter-page");
+
+        if (loadBtn) {
+          loadBtn.addEventListener("click", async function () {
+            loadBtn.disabled    = true;
+            loadBtn.textContent = "Loading…";
+            const page = filterEl ? parseInt(filterEl.value, 10) : NaN;
+            let query = db
+              .from("solutions")
+              .select("id, book_id, page_number, question, user_id, created_at, profiles(username)")
+              .order("created_at", { ascending: false })
+              .limit(200);
+            if (!isNaN(page) && page > 0) query = query.eq("page_number", page);
+            const { data, error } = await query;
+            loadBtn.disabled    = false;
+            loadBtn.textContent = "Load solutions";
+            if (error) { alert(error.message); return; }
+            renderAdminTable(data || []);
+          });
+        }
+      });
+    </script>
   </body>
 </html>

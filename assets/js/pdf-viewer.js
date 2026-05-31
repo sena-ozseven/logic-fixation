@@ -1,6 +1,6 @@
 const TOTAL_PAGES = 354;
-const PAGES_BASE = "/content/textbooks/logic-techniques-of-formal-reasoning/pages/";
-const STORAGE_KEY = "logic-techniques-solutions-by-page-v1";
+const PAGES_BASE  = "/content/textbooks/logic-techniques-of-formal-reasoning/pages/";
+const BOOK_ID     = "logic-techniques-of-formal-reasoning";
 
 const SYMBOLS = [
   { sym: "¬", tip: "Negation" },
@@ -18,7 +18,8 @@ const SYMBOLS = [
   { sym: "◇", tip: "Possibility (modal)" },
 ];
 
-let currentPage = 1;
+let currentPage    = 1;
+let currentEntries = []; // cache for export
 
 // ── Page image URL ────────────────────────────────────────────────────────────
 
@@ -27,26 +28,18 @@ function buildImageSrc(pageNum) {
   return `${PAGES_BASE}page-${padded}.jpg`;
 }
 
-// ── Storage ───────────────────────────────────────────────────────────────────
+// ── Supabase: load entries ────────────────────────────────────────────────────
 
-function readStorage() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : {};
-    return typeof parsed === "object" && parsed ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function writeStorage(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-function getEntries(page) {
-  const storage = readStorage();
-  const entries = storage[String(page)];
-  return Array.isArray(entries) ? entries : [];
+async function loadEntries(page) {
+  if (typeof db === "undefined") return [];
+  const { data, error } = await db
+    .from("solutions")
+    .select("id, question, explanation, answer, user_id, created_at, profiles(username)")
+    .eq("book_id", BOOK_ID)
+    .eq("page_number", page)
+    .order("created_at", { ascending: true });
+  if (error) { console.error("loadEntries:", error.message); return []; }
+  return data || [];
 }
 
 // ── URL helpers ───────────────────────────────────────────────────────────────
@@ -76,12 +69,12 @@ function escapeHtml(text) {
 
 function insertAtCursor(textarea, symbol) {
   const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
+  const end   = textarea.selectionEnd;
   textarea.value =
     textarea.value.slice(0, start) + symbol + textarea.value.slice(end);
   const cursor = start + symbol.length;
   textarea.selectionStart = cursor;
-  textarea.selectionEnd = cursor;
+  textarea.selectionEnd   = cursor;
   textarea.focus();
 }
 
@@ -107,18 +100,21 @@ function clearForm() {
 
 // ── Render panel ──────────────────────────────────────────────────────────────
 
-function renderEntriesPanel(page) {
-  const heading = document.querySelector("[data-entries-heading]");
-  const list = document.querySelector("[data-entries-list]");
+async function renderEntriesPanel(page) {
+  const heading    = document.querySelector("[data-entries-heading]");
+  const list       = document.querySelector("[data-entries-list]");
   const panelTitle = document.querySelector("[data-panel-title]");
-  const pageLabel = document.querySelector("[data-page-label]");
+  const pageLabel  = document.querySelector("[data-page-label]");
 
-  if (heading) heading.textContent = `Saved — Page ${page}`;
+  if (heading)    heading.textContent    = `Solutions — Page ${page}`;
   if (panelTitle) panelTitle.textContent = `Solutions — Page ${page}`;
-  if (pageLabel) pageLabel.textContent = `Page ${page} of ${TOTAL_PAGES}`;
-
+  if (pageLabel)  pageLabel.textContent  = `Page ${page} of ${TOTAL_PAGES}`;
   if (!list) return;
-  const entries = getEntries(page);
+
+  list.innerHTML = '<p class="muted entry-loading">Loading…</p>';
+
+  const entries = await loadEntries(page);
+  currentEntries = entries;
 
   if (!entries.length) {
     list.innerHTML =
@@ -126,12 +122,20 @@ function renderEntriesPanel(page) {
     return;
   }
 
+  const session = window.authState?.session;
+  const profile = window.authState?.profile;
+
   list.innerHTML = entries
     .map(function (entry, i) {
       const preview =
         entry.question.length > 48
           ? entry.question.slice(0, 48) + "…"
           : entry.question;
+      const username = entry.profiles?.username || "Anonymous";
+      const canDelete =
+        session &&
+        (entry.user_id === session.user.id || profile?.role === "admin");
+
       return `
         <div class="entry-item" data-entry-item="${i}">
           <div class="entry-summary" data-entry-toggle="${i}">
@@ -139,10 +143,13 @@ function renderEntriesPanel(page) {
             <span class="entry-toggle-icon">▸</span>
           </div>
           <div class="entry-detail" id="entry-detail-${i}">
+            <p class="entry-author-line">by ${escapeHtml(username)}</p>
             <p><strong>Question:</strong> ${escapeHtml(entry.question)}</p>
             <p><strong>Explanation:</strong> ${escapeHtml(entry.explanation)}</p>
             <p><strong>Answer:</strong> ${escapeHtml(entry.answer)}</p>
-            <button type="button" class="entry-delete-btn" data-delete-entry="${i}">Delete entry</button>
+            ${canDelete
+              ? `<button type="button" class="entry-delete-btn" data-delete-entry="${entry.id}">Delete entry</button>`
+              : ""}
           </div>
         </div>`;
     })
@@ -168,10 +175,10 @@ function updateNavControls(page) {
     });
   }
 
-  applyLinks("[data-nav-prev]",         buildPageUrl(page - 1),                          page <= 1);
-  applyLinks("[data-nav-next]",         buildPageUrl(page + 1),                          page >= TOTAL_PAGES);
-  applyLinks("[data-nav-jump-back]",    buildPageUrl(Math.max(1, page - 10)),             page <= 1);
-  applyLinks("[data-nav-jump-forward]", buildPageUrl(Math.min(TOTAL_PAGES, page + 10)),  page >= TOTAL_PAGES);
+  applyLinks("[data-nav-prev]",         buildPageUrl(page - 1),                         page <= 1);
+  applyLinks("[data-nav-next]",         buildPageUrl(page + 1),                         page >= TOTAL_PAGES);
+  applyLinks("[data-nav-jump-back]",    buildPageUrl(Math.max(1, page - 10)),            page <= 1);
+  applyLinks("[data-nav-jump-forward]", buildPageUrl(Math.min(TOTAL_PAGES, page + 10)), page >= TOTAL_PAGES);
 }
 
 function refreshPageImage(page) {
@@ -180,7 +187,6 @@ function refreshPageImage(page) {
   img.src = buildImageSrc(page);
   img.alt = `Page ${page} of ${TOTAL_PAGES} — Logic: Techniques of Formal Reasoning`;
 
-  // Preload next page
   if (page < TOTAL_PAGES) {
     const preload = new Image();
     preload.src = buildImageSrc(page + 1);
@@ -189,7 +195,7 @@ function refreshPageImage(page) {
 
 // ── Core navigate ─────────────────────────────────────────────────────────────
 
-function gotoPage(pageNum) {
+async function gotoPage(pageNum) {
   const target = Math.max(1, Math.min(TOTAL_PAGES, pageNum));
   currentPage = target;
 
@@ -199,7 +205,7 @@ function gotoPage(pageNum) {
   refreshPageImage(target);
   clearForm();
   updateNavControls(target);
-  renderEntriesPanel(target);
+  await renderEntriesPanel(target);
 }
 
 // ── Event wiring ──────────────────────────────────────────────────────────────
@@ -226,7 +232,7 @@ function wireGoForm() {
   document.querySelectorAll("[data-go-form]").forEach(function (form) {
     form.addEventListener("submit", function (event) {
       event.preventDefault();
-      const input = form.querySelector("[data-go-input]");
+      const input  = form.querySelector("[data-go-input]");
       const target = parseInt(input.value, 10);
       if (Number.isInteger(target) && target >= 1 && target <= TOTAL_PAGES) {
         gotoPage(target);
@@ -268,7 +274,14 @@ function wireSymbolKeyboard() {
 function wireSaveEntry() {
   const btn = document.querySelector("[data-save-entry]");
   if (!btn) return;
-  btn.addEventListener("click", function () {
+
+  btn.addEventListener("click", async function () {
+    const session = window.authState?.session;
+    if (!session) {
+      if (typeof openAuthModal === "function") openAuthModal();
+      return;
+    }
+
     const q = document.querySelector("[data-sol-question]")?.value.trim();
     const e = document.querySelector("[data-sol-explanation]")?.value.trim();
     const a = document.querySelector("[data-sol-answer]")?.value.trim();
@@ -276,15 +289,21 @@ function wireSaveEntry() {
       showStatus("Question, explanation, and answer are all required.", true);
       return;
     }
-    const storage = readStorage();
-    const key = String(currentPage);
-    const entries = Array.isArray(storage[key]) ? storage[key] : [];
-    entries.push({ question: q, explanation: e, answer: a });
-    storage[key] = entries;
-    writeStorage(storage);
+
+    showStatus("Saving…", false);
+    const { error } = await db.from("solutions").insert({
+      book_id:     BOOK_ID,
+      page_number: currentPage,
+      question:    q,
+      explanation: e,
+      answer:      a,
+      user_id:     session.user.id,
+    });
+
+    if (error) { showStatus(error.message, true); return; }
     clearForm();
     closeNewEntryForm();
-    renderEntriesPanel(currentPage);
+    await renderEntriesPanel(currentPage);
     showStatus(`Entry saved for page ${currentPage}.`, false);
   });
 }
@@ -293,12 +312,12 @@ function wireEntryInteractions() {
   const list = document.querySelector("[data-entries-list]");
   if (!list) return;
 
-  list.addEventListener("click", function (event) {
+  list.addEventListener("click", async function (event) {
     const toggleBtn = event.target.closest("[data-entry-toggle]");
     if (toggleBtn) {
-      const index = toggleBtn.getAttribute("data-entry-toggle");
+      const index  = toggleBtn.getAttribute("data-entry-toggle");
       const detail = document.getElementById(`entry-detail-${index}`);
-      const icon = toggleBtn.querySelector(".entry-toggle-icon");
+      const icon   = toggleBtn.querySelector(".entry-toggle-icon");
       if (detail) {
         detail.classList.toggle("open");
         if (icon) icon.textContent = detail.classList.contains("open") ? "▾" : "▸";
@@ -308,42 +327,43 @@ function wireEntryInteractions() {
 
     const deleteBtn = event.target.closest("[data-delete-entry]");
     if (deleteBtn) {
-      const index = parseInt(deleteBtn.getAttribute("data-delete-entry"), 10);
-      const storage = readStorage();
-      const key = String(currentPage);
-      const entries = Array.isArray(storage[key]) ? storage[key] : [];
-      if (!Number.isInteger(index) || index < 0 || index >= entries.length) return;
-      entries.splice(index, 1);
-      storage[key] = entries;
-      writeStorage(storage);
-      renderEntriesPanel(currentPage);
-      showStatus(`Deleted entry ${index + 1} on page ${currentPage}.`, false);
+      const entryId = deleteBtn.getAttribute("data-delete-entry");
+      if (!confirm("Delete this entry?")) return;
+      const { error } = await db.from("solutions").delete().eq("id", entryId);
+      if (error) { showStatus(error.message, true); return; }
+      await renderEntriesPanel(currentPage);
+      showStatus("Entry deleted.", false);
     }
   });
 }
 
 function wireNewEntryToggle() {
   const toggleBtn = document.querySelector("[data-new-entry-toggle]");
-  const body = document.querySelector("[data-new-entry-body]");
+  const body      = document.querySelector("[data-new-entry-body]");
   if (!toggleBtn || !body) return;
+
   toggleBtn.addEventListener("click", function () {
+    if (!window.authState?.session) {
+      if (typeof openAuthModal === "function") openAuthModal();
+      return;
+    }
     const isOpen = body.classList.toggle("open");
     toggleBtn.textContent = isOpen ? "− New Entry" : "+ New Entry";
   });
 }
 
 function closeNewEntryForm() {
-  const body = document.querySelector("[data-new-entry-body]");
+  const body      = document.querySelector("[data-new-entry-body]");
   const toggleBtn = document.querySelector("[data-new-entry-toggle]");
-  if (body) body.classList.remove("open");
+  if (body)      body.classList.remove("open");
   if (toggleBtn) toggleBtn.textContent = "+ New Entry";
 }
 
 function wireExport() {
-  const toggleBtn = document.querySelector("[data-export-toggle]");
+  const toggleBtn  = document.querySelector("[data-export-toggle]");
   const exportBody = document.querySelector("[data-export-body]");
   const generateBtn = document.querySelector("[data-export-page]");
-  const out = document.querySelector("[data-export-out]");
+  const out        = document.querySelector("[data-export-out]");
 
   if (toggleBtn && exportBody) {
     toggleBtn.addEventListener("click", function () {
@@ -356,9 +376,15 @@ function wireExport() {
     generateBtn.addEventListener("click", function () {
       out.value = JSON.stringify(
         {
-          page: currentPage,
-          source: "Logic: Techniques of Formal Reasoning",
-          entries: getEntries(currentPage),
+          page:    currentPage,
+          source:  "Logic: Techniques of Formal Reasoning",
+          entries: currentEntries.map(function (e) {
+            return {
+              question:    e.question,
+              explanation: e.explanation,
+              answer:      e.answer,
+            };
+          }),
         },
         null,
         2
@@ -368,19 +394,19 @@ function wireExport() {
 }
 
 function wirePopState() {
-  window.addEventListener("popstate", function (event) {
+  window.addEventListener("popstate", async function (event) {
     const page = event.state?.page ?? getPageFromUrl();
     currentPage = page;
     refreshPageImage(page);
     clearForm();
     updateNavControls(page);
-    renderEntriesPanel(page);
+    await renderEntriesPanel(page);
   });
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
   if (!document.querySelector("[data-page-img]")) return;
 
   wireNavLinks();
@@ -392,11 +418,16 @@ document.addEventListener("DOMContentLoaded", function () {
   wireExport();
   wirePopState();
 
+  // Re-render when auth changes (updates delete-button visibility)
+  document.addEventListener("authstatechange", function () {
+    renderEntriesPanel(currentPage);
+  });
+
   currentPage = getPageFromUrl();
   history.replaceState({ page: currentPage }, "", buildPageUrl(currentPage));
   document.title = `Page ${currentPage} of ${TOTAL_PAGES} — Logic: Techniques of Formal Reasoning`;
 
   refreshPageImage(currentPage);
   updateNavControls(currentPage);
-  renderEntriesPanel(currentPage);
+  await renderEntriesPanel(currentPage);
 });

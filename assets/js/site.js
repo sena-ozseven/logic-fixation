@@ -13,6 +13,7 @@ function renderSharedLayout() {
             <a href="/about/">About</a>
             <a href="/textbooks/">Textbooks</a>
             <a href="/contact/">Contact</a>
+            <span data-auth-slot></span>
           </nav>
         </div>
       </header>

@@ -562,6 +562,199 @@ button:hover {
   font-size: 0.825rem;
 }
 
+/* ── Auth modal ──────────────────────────────────────────────────────────────*/
+#auth-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#auth-modal[hidden] {
+  display: none;
+}
+
+.auth-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.auth-dialog {
+  position: relative;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 360px;
+  z-index: 1;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.auth-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 0 0.3rem;
+}
+
+.auth-close:hover {
+  color: var(--text);
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.auth-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0.5rem 0.9rem;
+  margin-bottom: -1px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.auth-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+[data-auth-form] label {
+  display: block;
+  font-size: 0.825rem;
+  font-weight: 500;
+  margin: 0.75rem 0 0.25rem;
+}
+
+[data-auth-form] input {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+[data-auth-form] input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.auth-status {
+  margin-top: 0.75rem;
+  font-size: 0.825rem;
+  min-height: 1.2em;
+}
+
+/* ── Header auth slot ────────────────────────────────────────────────────────*/
+.btn-auth {
+  background: none;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.82rem;
+  padding: 0.2rem 0.7rem;
+  white-space: nowrap;
+}
+
+.btn-auth:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-auth-out {
+  border-color: var(--muted);
+  color: var(--muted);
+}
+
+.btn-auth-out:hover {
+  background: var(--muted);
+  color: #fff;
+}
+
+.auth-user-name {
+  font-size: 0.82rem;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.auth-admin-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 3px;
+  padding: 0 0.3rem;
+  vertical-align: middle;
+  margin-left: 0.2rem;
+  letter-spacing: 0.02em;
+}
+
+/* ── Entry author line ───────────────────────────────────────────────────────*/
+.entry-author-line {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 0 0 0.5rem;
+  font-style: italic;
+}
+
+.entry-loading {
+  font-size: 0.825rem;
+}
+
+/* ── Admin solutions table ───────────────────────────────────────────────────*/
+.admin-solutions-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.admin-solutions-table th,
+.admin-solutions-table td {
+  text-align: left;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.admin-solutions-table th {
+  font-weight: 600;
+  background: var(--reader-panel-bg);
+}
+
+.btn-danger {
+  background: #b91c1c;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.2rem 0.55rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.btn-danger:hover {
+  background: #991b1b;
+}
+
 /* ── Utilities ── */
 .sr-only {
   position: absolute;
